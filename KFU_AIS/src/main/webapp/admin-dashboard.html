@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KFU Chad — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --gold:      #C8920A;
+  --gold-b:    #F5C518;
+  --gold-pale: #FFF8DC;
+  --gold-bg:   #FFFDF5;
+  --white:     #FFFFFF;
+  --border:    #EDE8D8;
+  --text:      #1A1A1A;
+  --muted:     #777;
+  --sidebar-w: 240px;
+  --red:       #D63B3B;
+  --green:     #1E8A4C;
+  --radius:    10px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#F7F5EE;color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo .uni{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);font-weight:700;line-height:1.2}
+.sidebar-logo .sub{font-size:0.68rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#BBB;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;border-radius:0;transition:all .2s;color:var(--muted);font-size:0.85rem;font-weight:500;border-left:3px solid transparent}
+.nav-item:hover{background:var(--gold-pale);color:var(--gold)}
+.nav-item.active{background:var(--gold-pale);color:var(--gold);border-left-color:var(--gold);font-weight:600}
+.nav-item .ico{width:18px;text-align:center;font-size:1rem}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:0.78rem;color:var(--muted)}
+.sidebar-footer strong{display:block;color:var(--text);font-size:0.85rem}
+.btn-logout{margin-top:8px;width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.8rem;color:var(--muted);transition:all .2s}
+.btn-logout:hover{background:#FFF0F0;color:var(--red);border-color:var(--red)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--text);font-weight:700}
+.topbar-meta{font-size:0.8rem;color:var(--muted)}
+.content{padding:24px 28px;flex:1}
+
+/* ── CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-b))}
+.stat-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1}
+.stat-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.stat-ico{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:2.2rem;opacity:.12}
+
+/* ── SECTION ── */
+.section{display:none}
+.section.active{display:block}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.section-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+
+/* ── TABLE ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:var(--gold-bg);padding:10px 14px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid #F0EDE3;font-size:0.85rem;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FFFDF5}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:600}
+.badge-green{background:#E6F7EE;color:var(--green)}
+.badge-red{background:#FEE8E8;color:var(--red)}
+.badge-gold{background:#FFF3CC;color:var(--gold)}
+.badge-blue{background:#E8F0FE;color:#1967D2}
+
+/* ── FORM ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:28px 32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal h2{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:20px;color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:14px}
+.form-group.full{grid-column:1/-1}
+label.fl{display:block;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=password],input[type=email],input[type=date],input[type=number],select,textarea{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--white);outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,10,.1)}
+textarea{resize:vertical;min-height:80px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--gold-b),var(--gold));color:#fff;box-shadow:0 4px 12px rgba(200,146,10,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(200,146,10,.4)}
+.btn-secondary{background:var(--white);border:1.5px solid var(--border);color:var(--muted)}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.btn-danger{background:#FEE8E8;color:var(--red);border:1px solid #FBC8C8}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 12px;font-size:0.78rem}
+.btn-add{display:flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,var(--gold-b),var(--gold));color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;transition:all .2s;box-shadow:0 4px 12px rgba(200,146,10,.25)}
+.btn-add:hover{transform:translateY(-1px)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast-item{padding:12px 20px;border-radius:10px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.15);animation:slideIn .3s ease;max-width:340px}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--red);color:#fff}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── LOADING ── */
+.spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{padding:40px;text-align:center;color:var(--muted);font-size:0.9rem}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .main{margin-left:0}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="uni">King Faisal University</div>
+    <div class="sub">Chad · Admin Portal</div>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" data-section="dashboard">
+      <span class="ico">🏠</span> Dashboard
+    </div>
+    <div class="nav-section">Academic</div>
+    <div class="nav-item" data-section="students">
+      <span class="ico">🎓</span> Students
+    </div>
+    <div class="nav-item" data-section="faculty">
+      <span class="ico">👨‍🏫</span> Faculty
+    </div>
+    <div class="nav-item" data-section="courses">
+      <span class="ico">📚</span> Courses
+    </div>
+    <div class="nav-item" data-section="timetable">
+      <span class="ico">🗓️</span> Timetable
+    </div>
+    <div class="nav-item" data-section="attendance">
+      <span class="ico">✅</span> Attendance
+    </div>
+    <div class="nav-item" data-section="results">
+      <span class="ico">📊</span> Results
+    </div>
+    <div class="nav-item" data-section="assignments">
+      <span class="ico">📝</span> Assignments
+    </div>
+    <div class="nav-section">Finance & Services</div>
+    <div class="nav-item" data-section="fees">
+      <span class="ico">💰</span> Fees
+    </div>
+    <div class="nav-item" data-section="hostel">
+      <span class="ico">🏠</span> Hostel
+    </div>
+    <div class="nav-item" data-section="library">
+      <span class="ico">📖</span> Library
+    </div>
+    <div class="nav-item" data-section="notices">
+      <span class="ico">📢</span> Notices
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <strong id="sidebarName">Admin</strong>
+    <span id="sidebarUid" style="font-size:.72rem"></span>
+    <button class="btn-logout" id="btnLogout">Sign Out</button>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <span class="topbar-meta" id="topbarDate"></span>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-num" id="ds-students">–</div><div class="stat-label">Total Students</div><div class="stat-ico">🎓</div></div>
+        <div class="stat-card"><div class="stat-num" id="ds-faculty">–</div><div class="stat-label">Faculty Members</div><div class="stat-ico">👨‍🏫</div></div>
+        <div class="stat-card"><div class="stat-num" id="ds-courses">–</div><div class="stat-label">Courses</div><div class="stat-ico">📚</div></div>
+        <div class="stat-card"><div class="stat-num" id="ds-notices">–</div><div class="stat-label">Urgent Notices</div><div class="stat-ico">🔔</div></div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="section" id="sec-students">
+      <div class="section-header">
+        <span class="section-title">Students</span>
+        <button class="btn-add" id="btnAddStudent">＋ Add Student</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>UID</th><th>Roll No</th><th>Dept</th><th>Sem</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody id="tblStudents"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- FACULTY -->
+    <div class="section" id="sec-faculty">
+      <div class="section-header">
+        <span class="section-title">Faculty</span>
+        <button class="btn-add" id="btnAddFaculty">＋ Add Faculty</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>Employee ID</th><th>Dept</th><th>Designation</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody id="tblFaculty"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="section" id="sec-courses">
+      <div class="section-header">
+        <span class="section-title">Courses</span>
+        <button class="btn-add" id="btnAddCourse">＋ Add Course</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Credits</th><th>Sem</th><th>Type</th><th>Dept</th></tr></thead>
+        <tbody id="tblCourses"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- TIMETABLE -->
+    <div class="section" id="sec-timetable">
+      <div class="section-header">
+        <span class="section-title">Timetable</span>
+        <button class="btn-add" id="btnAddSlot">＋ Add Slot</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Day</th><th>Course</th><th>Faculty</th><th>Time</th><th>Room</th><th>Sem</th><th>Sec</th><th>Actions</th></tr></thead>
+        <tbody id="tblTimetable"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="section" id="sec-attendance">
+      <div class="section-header">
+        <span class="section-title">Attendance</span>
+        <button class="btn-add" id="btnMarkAtt">＋ Mark Attendance</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Student</th><th>Roll No</th><th>Course</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody id="tblAttendance"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="section" id="sec-results">
+      <div class="section-header">
+        <span class="section-title">Results</span>
+        <button class="btn-add" id="btnAddResult">＋ Enter Marks</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Student</th><th>Roll No</th><th>Course</th><th>Sem</th><th>Internal</th><th>External</th><th>Total</th><th>Grade</th><th>GP</th></tr></thead>
+        <tbody id="tblResults"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div class="section" id="sec-assignments">
+      <div class="section-header">
+        <span class="section-title">Assignments</span>
+        <button class="btn-add" id="btnAddAssignment">＋ Post Assignment</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Title</th><th>Course</th><th>Faculty</th><th>Due Date</th><th>Max Marks</th></tr></thead>
+        <tbody id="tblAssignments"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- FEES -->
+    <div class="section" id="sec-fees">
+      <div class="section-header">
+        <span class="section-title">Fees</span>
+        <button class="btn-add" id="btnAddFee">＋ Add Fee Record</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Student</th><th>Roll No</th><th>Sem</th><th>Type</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="tblFees"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- HOSTEL -->
+    <div class="section" id="sec-hostel">
+      <div class="section-header">
+        <span class="section-title">Hostel Rooms</span>
+        <div style="display:flex;gap:10px">
+          <button class="btn-add" id="btnAddRoom">＋ Add Room</button>
+          <button class="btn-add" id="btnAllotRoom" style="background:linear-gradient(135deg,#2196F3,#1565C0)">🏠 Allot Room</button>
+        </div>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Room</th><th>Block</th><th>Type</th><th>Floor</th><th>Capacity</th><th>Occupied</th><th>Monthly Fee</th></tr></thead>
+        <tbody id="tblHostel"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="section" id="sec-library">
+      <div class="section-header">
+        <span class="section-title">Library Books</span>
+        <div style="display:flex;gap:10px">
+          <button class="btn-add" id="btnAddBook">＋ Add Book</button>
+          <button class="btn-add" id="btnIssueBook" style="background:linear-gradient(135deg,#2196F3,#1565C0)">📤 Issue Book</button>
+        </div>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Total</th><th>Available</th><th>Rack</th></tr></thead>
+        <tbody id="tblLibrary"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- NOTICES -->
+    <div class="section" id="sec-notices">
+      <div class="section-header">
+        <span class="section-title">Notices</span>
+        <button class="btn-add" id="btnAddNotice">＋ Post Notice</button>
+      </div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Title</th><th>Content</th><th>Target</th><th>Posted By</th><th>Urgent</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="tblNotices"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════ MODALS ══════════════════════ -->
+
+<!-- ADD STUDENT -->
+<div class="modal-overlay" id="modalStudent">
+  <div class="modal">
+    <h2>Add New Student</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">University ID (UID)*</label><input type="text" id="s_uid" placeholder="KFU-2024-001"/></div>
+      <div class="form-group"><label class="fl">Password*</label><input type="password" id="s_password" placeholder="Initial password"/></div>
+      <div class="form-group"><label class="fl">Full Name*</label><input type="text" id="s_full_name" placeholder="Full name"/></div>
+      <div class="form-group"><label class="fl">Roll Number*</label><input type="text" id="s_roll_number" placeholder="CS-2024-001"/></div>
+      <div class="form-group"><label class="fl">Email</label><input type="email" id="s_email" placeholder="student@kfu.td"/></div>
+      <div class="form-group"><label class="fl">Phone</label><input type="text" id="s_phone" placeholder="+235 60 00 00 00"/></div>
+      <div class="form-group"><label class="fl">Department*</label>
+        <select id="s_dept_id"><option value="">Select Department</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Semester*</label>
+        <select id="s_semester"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Section</label><input type="text" id="s_section" placeholder="A"/></div>
+      <div class="form-group"><label class="fl">Batch</label><input type="text" id="s_batch" placeholder="2024-2028"/></div>
+      <div class="form-group"><label class="fl">Date of Birth</label><input type="date" id="s_dob"/></div>
+      <div class="form-group"><label class="fl">Gender</label>
+        <select id="s_gender"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalStudent')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveStudent">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FACULTY -->
+<div class="modal-overlay" id="modalFaculty">
+  <div class="modal">
+    <h2>Add New Faculty</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">University ID (UID)*</label><input type="text" id="f_uid" placeholder="FAC-2024-01"/></div>
+      <div class="form-group"><label class="fl">Password*</label><input type="password" id="f_password" placeholder="Initial password"/></div>
+      <div class="form-group"><label class="fl">Full Name*</label><input type="text" id="f_full_name" placeholder="Dr. Full Name"/></div>
+      <div class="form-group"><label class="fl">Employee ID</label><input type="text" id="f_employee_id" placeholder="EMP-001"/></div>
+      <div class="form-group"><label class="fl">Email</label><input type="email" id="f_email" placeholder="faculty@kfu.td"/></div>
+      <div class="form-group"><label class="fl">Phone</label><input type="text" id="f_phone" placeholder="+235 60 00 00 00"/></div>
+      <div class="form-group"><label class="fl">Department*</label>
+        <select id="f_dept_id"><option value="">Select Department</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Designation</label><input type="text" id="f_designation" placeholder="Associate Professor"/></div>
+      <div class="form-group full"><label class="fl">Qualification</label><input type="text" id="f_qualification" placeholder="PhD Computer Science"/></div>
+      <div class="form-group"><label class="fl">Joining Date</label><input type="date" id="f_joining_date"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalFaculty')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveFaculty">Save Faculty</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COURSE -->
+<div class="modal-overlay" id="modalCourse">
+  <div class="modal">
+    <h2>Add New Course</h2>
+    <div class="form-row">
+      <div class="form-group full"><label class="fl">Course Name*</label><input type="text" id="c_course_name" placeholder="Introduction to Programming"/></div>
+      <div class="form-group"><label class="fl">Course Code*</label><input type="text" id="c_course_code" placeholder="CS101"/></div>
+      <div class="form-group"><label class="fl">Credits*</label><input type="number" id="c_credits" placeholder="3" min="1" max="6"/></div>
+      <div class="form-group"><label class="fl">Department*</label>
+        <select id="c_dept_id"><option value="">Select Department</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Semester*</label>
+        <select id="c_semester"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Course Type</label>
+        <select id="c_course_type"><option value="Core">Core</option><option value="Elective">Elective</option><option value="Lab">Lab</option><option value="Project">Project</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalCourse')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveCourse">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TIMETABLE SLOT -->
+<div class="modal-overlay" id="modalSlot">
+  <div class="modal">
+    <h2>Add Timetable Slot</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Course*</label>
+        <select id="tt_course_id"><option value="">Select Course</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Faculty*</label>
+        <select id="tt_faculty_id"><option value="">Select Faculty</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Department*</label>
+        <select id="tt_dept_id"><option value="">Select Department</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Semester*</label>
+        <select id="tt_semester"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Day*</label>
+        <select id="tt_day_of_week">
+          <option value="">Select Day</option>
+          <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+          <option>Thursday</option><option>Friday</option><option>Saturday</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Section</label><input type="text" id="tt_section" placeholder="A"/></div>
+      <div class="form-group"><label class="fl">Start Time*</label><input type="time" id="tt_start_time"/></div>
+      <div class="form-group"><label class="fl">End Time*</label><input type="time" id="tt_end_time"/></div>
+      <div class="form-group full"><label class="fl">Room</label><input type="text" id="tt_room" placeholder="CS-101"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalSlot')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveSlot">Save Slot</button>
+    </div>
+  </div>
+</div>
+
+<!-- MARK ATTENDANCE -->
+<div class="modal-overlay" id="modalAttendance">
+  <div class="modal">
+    <h2>Mark Attendance</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Student*</label>
+        <select id="att_student_id"><option value="">Select Student</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Course*</label>
+        <select id="att_course_id"><option value="">Select Course</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Date*</label><input type="date" id="att_date"/></div>
+      <div class="form-group"><label class="fl">Status</label>
+        <select id="att_status">
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+          <option value="Late">Late</option>
+          <option value="Excused">Excused</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalAttendance')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveAttendance">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENTER RESULTS -->
+<div class="modal-overlay" id="modalResult">
+  <div class="modal">
+    <h2>Enter Marks</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Student*</label>
+        <select id="r_student_id"><option value="">Select Student</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Course*</label>
+        <select id="r_course_id"><option value="">Select Course</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Semester*</label>
+        <select id="r_semester"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Internal (0–50)*</label><input type="number" id="r_internal" min="0" max="50" placeholder="0"/></div>
+      <div class="form-group"><label class="fl">External (0–50)*</label><input type="number" id="r_external" min="0" max="50" placeholder="0"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalResult')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveResult">Save Marks</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST ASSIGNMENT -->
+<div class="modal-overlay" id="modalAssignment">
+  <div class="modal">
+    <h2>Post Assignment</h2>
+    <div class="form-row">
+      <div class="form-group full"><label class="fl">Title*</label><input type="text" id="a_title" placeholder="Assignment title"/></div>
+      <div class="form-group"><label class="fl">Course*</label>
+        <select id="a_course_id"><option value="">Select Course</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Faculty*</label>
+        <select id="a_faculty_id"><option value="">Select Faculty</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Due Date*</label><input type="date" id="a_due_date"/></div>
+      <div class="form-group"><label class="fl">Max Marks*</label><input type="number" id="a_max_marks" placeholder="100" min="1"/></div>
+      <div class="form-group full"><label class="fl">Description</label><textarea id="a_description" placeholder="Assignment details…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalAssignment')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveAssignment">Post Assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FEE -->
+<div class="modal-overlay" id="modalFee">
+  <div class="modal">
+    <h2>Add Fee Record</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Student*</label>
+        <select id="fee_student_id"><option value="">Select Student</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Semester*</label>
+        <select id="fee_semester"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Fee Type*</label>
+        <select id="fee_fee_type">
+          <option value="Tuition Fee">Tuition Fee</option>
+          <option value="Hostel Fee">Hostel Fee</option>
+          <option value="Library Fee">Library Fee</option>
+          <option value="Exam Fee">Exam Fee</option>
+          <option value="Transport Fee">Transport Fee</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="fl">Amount (CFA)*</label><input type="number" id="fee_amount" placeholder="150000" min="0"/></div>
+      <div class="form-group"><label class="fl">Due Date*</label><input type="date" id="fee_due_date"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalFee')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveFee">Save Fee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HOSTEL ROOM -->
+<div class="modal-overlay" id="modalRoom">
+  <div class="modal">
+    <h2>Add Hostel Room</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Room Number*</label><input type="text" id="hr_room_number" placeholder="A-101"/></div>
+      <div class="form-group"><label class="fl">Block</label><input type="text" id="hr_block" placeholder="Block A"/></div>
+      <div class="form-group"><label class="fl">Room Type</label>
+        <select id="hr_room_type"><option value="Single">Single</option><option value="Double">Double</option><option value="Triple">Triple</option><option value="Dormitory">Dormitory</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Floor*</label><input type="number" id="hr_floor" placeholder="1" min="0"/></div>
+      <div class="form-group"><label class="fl">Capacity*</label><input type="number" id="hr_capacity" placeholder="2" min="1"/></div>
+      <div class="form-group"><label class="fl">Monthly Fee (CFA)*</label><input type="number" id="hr_monthly_fee" placeholder="20000" min="0"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalRoom')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveRoom">Save Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALLOT ROOM -->
+<div class="modal-overlay" id="modalAllot">
+  <div class="modal">
+    <h2>Allot Hostel Room</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Student*</label>
+        <select id="allot_student_id"><option value="">Select Student</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Room*</label>
+        <select id="allot_room_id"><option value="">Select Room</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalAllot')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveAllot">Allot Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BOOK -->
+<div class="modal-overlay" id="modalBook">
+  <div class="modal">
+    <h2>Add Library Book</h2>
+    <div class="form-row">
+      <div class="form-group full"><label class="fl">Title*</label><input type="text" id="b_title" placeholder="Book title"/></div>
+      <div class="form-group"><label class="fl">Author</label><input type="text" id="b_author" placeholder="Author name"/></div>
+      <div class="form-group"><label class="fl">ISBN</label><input type="text" id="b_isbn" placeholder="978-..."/></div>
+      <div class="form-group"><label class="fl">Category</label><input type="text" id="b_category" placeholder="Computer Science"/></div>
+      <div class="form-group"><label class="fl">Total Copies*</label><input type="number" id="b_total_copies" placeholder="1" min="1"/></div>
+      <div class="form-group"><label class="fl">Rack No</label><input type="text" id="b_rack_no" placeholder="R-CS-01"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalBook')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveBook">Add Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- ISSUE BOOK -->
+<div class="modal-overlay" id="modalIssue">
+  <div class="modal">
+    <h2>Issue Book</h2>
+    <div class="form-row">
+      <div class="form-group"><label class="fl">Book*</label>
+        <select id="issue_book_id"><option value="">Select Book</option></select>
+      </div>
+      <div class="form-group"><label class="fl">User (Student/Faculty)*</label>
+        <select id="issue_user_id"><option value="">Select User</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalIssue')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveIssue">Issue Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST NOTICE -->
+<div class="modal-overlay" id="modalNotice">
+  <div class="modal">
+    <h2>Post Notice</h2>
+    <div class="form-row">
+      <div class="form-group full"><label class="fl">Title*</label><input type="text" id="n_title" placeholder="Notice title"/></div>
+      <div class="form-group full"><label class="fl">Content</label><textarea id="n_content" placeholder="Notice details…"></textarea></div>
+      <div class="form-group"><label class="fl">Target Role</label>
+        <select id="n_target_role"><option value="all">All</option><option value="student">Students</option><option value="faculty">Faculty</option><option value="admin">Admin</option></select>
+      </div>
+      <div class="form-group"><label class="fl">Urgent?</label>
+        <select id="n_is_urgent"><option value="0">No</option><option value="1">Yes – Urgent</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalNotice')">Cancel</button>
+      <button class="btn btn-primary" id="btnSaveNotice">Post Notice</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCRIPT ══════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ── State ─────────────────────────────────────────────
+  var currentUserId = 1; // will be overwritten by dashboard fetch
+  var depts   = [];
+  var courses = [];
+  var faculty = [];
+  var students = [];
+  var rooms   = [];
+  var books   = [];
+  var users   = [];
+
+  // ── Topbar date ───────────────────────────────────────
+  document.getElementById('topbarDate').textContent =
+    new Date().toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // ── Sidebar nav ───────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+      item.classList.add('active');
+      var sec = item.dataset.section;
+      document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
+      document.getElementById('sec-' + sec).classList.add('active');
+      document.getElementById('pageTitle').textContent = item.textContent.trim();
+      loadSection(sec);
+    });
+  });
+
+  // ── Logout ────────────────────────────────────────────
+  document.getElementById('btnLogout').addEventListener('click', function () {
+    window.location.href = 'LogoutServlet';
+  });
+
+  // ── Toast ─────────────────────────────────────────────
+  function toast(msg, type) {
+    var el = document.createElement('div');
+    el.className = 'toast-item toast-' + (type || 'success');
+    el.textContent = msg;
+    document.getElementById('toast').appendChild(el);
+    setTimeout(function () { el.remove(); }, 3500);
+  }
+
+  // ── API helpers ───────────────────────────────────────
+  function api(url) {
+    return fetch(url).then(function (r) { return r.json(); });
+  }
+  function post(url, params) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(params).toString()
+    }).then(function (r) { return r.json(); });
+  }
+  function del(url, params) {
+    return fetch(url + '?' + new URLSearchParams(params).toString(), { method: 'DELETE' })
+      .then(function (r) { return r.json(); });
+  }
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+  function setVal(id, v) {
+    var el = document.getElementById(id);
+    if (el) el.value = v;
+  }
+  function clearForm(ids) {
+    ids.forEach(function (id) { setVal(id, ''); });
+  }
+
+  // ── Modal helpers ─────────────────────────────────────
+  window.closeModal = function (id) {
+    document.getElementById(id).classList.remove('open');
+  };
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(function (ov) {
+    ov.addEventListener('click', function (e) {
+      if (e.target === ov) ov.classList.remove('open');
+    });
+  });
+
+  // ── Populate select helpers ───────────────────────────
+  function fillSelect(id, items, valKey, labelFn, placeholder) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">' + (placeholder || 'Select') + '</option>';
+    items.forEach(function (item) {
+      var opt = document.createElement('option');
+      opt.value = item[valKey];
+      opt.textContent = labelFn(item);
+      sel.appendChild(opt);
+    });
+  }
+  function fillDepts(ids) {
+    ids.forEach(function (id) {
+      fillSelect(id, depts, 'dept_id', function (d) { return d.dept_name; }, 'Select Department');
+    });
+  }
+  function fillCourses(ids) {
+    ids.forEach(function (id) {
+      fillSelect(id, courses, 'course_id', function (c) { return c.course_name + ' (' + c.course_code + ')'; }, 'Select Course');
+    });
+  }
+  function fillFaculty(ids) {
+    ids.forEach(function (id) {
+      fillSelect(id, faculty, 'faculty_id', function (f) { return f.name; }, 'Select Faculty');
+    });
+  }
+  function fillStudents(ids) {
+    ids.forEach(function (id) {
+      fillSelect(id, students, 'student_id', function (s) { return s.name + ' (' + s.roll_number + ')'; }, 'Select Student');
+    });
+  }
+
+  // ── Badge helper ──────────────────────────────────────
+  function badge(text, cls) {
+    return '<span class="badge badge-' + cls + '">' + text + '</span>';
+  }
+  function statusBadge(s) {
+    if (!s) return '';
+    var map = { Paid:'green', Present:'green', Returned:'green', Active:'green',
+                Pending:'gold', Issued:'blue', Submitted:'blue', Graded:'green',
+                Absent:'red', Overdue:'red', Late:'gold', Missing:'red', Excused:'gold', Vacated:'red' };
+    return badge(s, map[s] || 'gold');
+  }
+
+  // ── LOAD SECTION ──────────────────────────────────────
+  function loadSection(sec) {
+    switch (sec) {
+      case 'dashboard':   loadDashboard();   break;
+      case 'students':    loadStudents();    break;
+      case 'faculty':     loadFaculty();     break;
+      case 'courses':     loadCourses();     break;
+      case 'timetable':   loadTimetable();   break;
+      case 'attendance':  loadAttendance();  break;
+      case 'results':     loadResults();     break;
+      case 'assignments': loadAssignments(); break;
+      case 'fees':        loadFees();        break;
+      case 'hostel':      loadHostel();      break;
+      case 'library':     loadLibrary();     break;
+      case 'notices':     loadNotices();     break;
+    }
+  }
+
+  // ── DEPARTMENTS (needed everywhere) ───────────────────
+  function loadDepts() {
+    return api('CourseServlet').then(function (data) {
+      /* departments endpoint not separate – use DashboardServlet approach;
+         but we have CourseServlet which returns courses. We get depts via
+         a small workaround – inline static list matches kfudb.sql seed */
+    });
+  }
+  // Load departments from courses (extract unique dept names) + static fallback
+  function ensureDepts() {
+    if (depts.length > 0) return Promise.resolve();
+    return api('CourseServlet').then(function (data) {
+      // Build dept list from course data
+      var seen = {};
+      data.forEach(function (c) {
+        if (c.dept_name && !seen[c.dept_name]) {
+          seen[c.dept_name] = true;
+        }
+      });
+      courses = data;
+    }).then(function () {
+      return api('FacultyServlet').then(function (data) {
+        faculty = data;
+        var seen = {};
+        data.forEach(function (f) {
+          if (f.dept_id && !seen[f.dept_id]) {
+            seen[f.dept_id] = { dept_id: f.dept_id, dept_name: f.dept_name };
+            depts.push(seen[f.dept_id]);
+          }
+        });
+      });
+    });
+  }
+
+  // ── DASHBOARD ─────────────────────────────────────────
+  function loadDashboard() {
+    api('DashboardServlet').then(function (data) {
+      if (data.error) { toast(data.error, 'error'); return; }
+      document.getElementById('ds-students').textContent = data.total_students;
+      document.getElementById('ds-faculty').textContent  = data.total_faculty;
+      document.getElementById('ds-courses').textContent  = data.total_courses;
+      document.getElementById('ds-notices').textContent  = data.urgent_notices;
+      document.getElementById('sidebarName').textContent = data.name || 'Admin';
+      document.getElementById('sidebarUid').textContent  = data.uid  || '';
+      currentUserId = data.user_id || 1;
+    }).catch(function () { toast('Dashboard load failed', 'error'); });
+  }
+
+  // ── STUDENTS ──────────────────────────────────────────
+  function loadStudents() {
+    api('StudentServlet').then(function (data) {
+      students = data;
+      var tb = document.getElementById('tblStudents');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No students found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (s) {
+        return '<tr>' +
+          '<td>' + s.student_id + '</td>' +
+          '<td>' + s.name + '</td>' +
+          '<td><code>' + s.uid + '</code></td>' +
+          '<td>' + s.roll_number + '</td>' +
+          '<td>' + (s.dept_name || '–') + '</td>' +
+          '<td>' + s.semester + '</td>' +
+          '<td>' + (s.email || '–') + '</td>' +
+          '<td><button class="btn btn-sm btn-danger" onclick="deleteStudent(' + s.student_id + ')">Delete</button></td>' +
+          '</tr>';
+      }).join('');
+    });
+  }
+
+  window.deleteStudent = function (id) {
+    if (!confirm('Delete this student? This cannot be undone.')) return;
+    del('StudentServlet', { id: id }).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') loadStudents();
+    });
+  };
+
+  document.getElementById('btnAddStudent').addEventListener('click', function () {
+    ensureDepts().then(function () {
+      fillDepts(['s_dept_id']);
+      clearForm(['s_uid','s_password','s_full_name','s_roll_number','s_email','s_phone','s_section','s_batch','s_dob']);
+      openModal('modalStudent');
+    });
+  });
+
+  document.getElementById('btnSaveStudent').addEventListener('click', function () {
+    var params = {
+      uid:         val('s_uid'),
+      password:    val('s_password'),
+      full_name:   val('s_full_name'),
+      roll_number: val('s_roll_number'),
+      email:       val('s_email'),
+      phone:       val('s_phone'),
+      dept_id:     val('s_dept_id'),
+      semester:    val('s_semester'),
+      section:     val('s_section'),
+      batch:       val('s_batch'),
+      dob:         val('s_dob'),
+      gender:      val('s_gender')
+    };
+    if (!params.uid || !params.password || !params.full_name || !params.roll_number || !params.dept_id || !params.semester) {
+      toast('Please fill all required fields (*)', 'error'); return;
+    }
+    post('StudentServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalStudent'); loadStudents(); }
+    });
+  });
+
+  // ── FACULTY ───────────────────────────────────────────
+  function loadFaculty() {
+    api('FacultyServlet').then(function (data) {
+      faculty = data;
+      var tb = document.getElementById('tblFaculty');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No faculty found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (f) {
+        return '<tr>' +
+          '<td>' + f.faculty_id + '</td>' +
+          '<td>' + f.name + '</td>' +
+          '<td>' + (f.employee_id || '–') + '</td>' +
+          '<td>' + (f.dept_name || '–') + '</td>' +
+          '<td>' + (f.designation || '–') + '</td>' +
+          '<td>' + (f.email || '–') + '</td>' +
+          '<td><button class="btn btn-sm btn-danger" onclick="deleteFaculty(' + f.faculty_id + ')">Delete</button></td>' +
+          '</tr>';
+      }).join('');
+    });
+  }
+
+  window.deleteFaculty = function (id) {
+    if (!confirm('Delete this faculty member?')) return;
+    del('FacultyServlet', { id: id }).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') loadFaculty();
+    });
+  };
+
+  document.getElementById('btnAddFaculty').addEventListener('click', function () {
+    ensureDepts().then(function () {
+      fillDepts(['f_dept_id']);
+      clearForm(['f_uid','f_password','f_full_name','f_employee_id','f_email','f_phone','f_designation','f_qualification','f_joining_date']);
+      openModal('modalFaculty');
+    });
+  });
+
+  document.getElementById('btnSaveFaculty').addEventListener('click', function () {
+    var params = {
+      uid:           val('f_uid'),
+      password:      val('f_password'),
+      full_name:     val('f_full_name'),
+      employee_id:   val('f_employee_id'),
+      email:         val('f_email'),
+      phone:         val('f_phone'),
+      dept_id:       val('f_dept_id'),
+      designation:   val('f_designation'),
+      qualification: val('f_qualification'),
+      joining_date:  val('f_joining_date')
+    };
+    if (!params.uid || !params.password || !params.full_name || !params.dept_id) {
+      toast('uid, password, full_name, dept_id are required', 'error'); return;
+    }
+    post('FacultyServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalFaculty'); loadFaculty(); }
+    });
+  });
+
+  // ── COURSES ───────────────────────────────────────────
+  function loadCourses() {
+    api('CourseServlet').then(function (data) {
+      courses = data;
+      var tb = document.getElementById('tblCourses');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No courses found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (c) {
+        return '<tr><td>' + c.course_id + '</td><td>' + c.course_name + '</td><td><code>' + c.course_code + '</code></td>' +
+          '<td>' + c.credits + '</td><td>' + c.semester + '</td>' +
+          '<td>' + badge(c.course_type, 'gold') + '</td><td>' + (c.dept_name || '–') + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnAddCourse').addEventListener('click', function () {
+    ensureDepts().then(function () {
+      fillDepts(['c_dept_id']);
+      clearForm(['c_course_name','c_course_code','c_credits','c_semester']);
+      openModal('modalCourse');
+    });
+  });
+
+  document.getElementById('btnSaveCourse').addEventListener('click', function () {
+    var params = {
+      course_name: val('c_course_name'),
+      course_code: val('c_course_code'),
+      credits:     val('c_credits'),
+      dept_id:     val('c_dept_id'),
+      semester:    val('c_semester'),
+      course_type: val('c_course_type')
+    };
+    if (!params.course_name || !params.course_code || !params.credits || !params.dept_id || !params.semester) {
+      toast('Please fill all required fields', 'error'); return;
+    }
+    post('CourseServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalCourse'); loadCourses(); }
+    });
+  });
+
+  // ── TIMETABLE ─────────────────────────────────────────
+  function loadTimetable() {
+    api('TimetableServlet').then(function (data) {
+      var tb = document.getElementById('tblTimetable');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No slots found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (t) {
+        return '<tr><td>' + t.day + '</td><td>' + t.course_name + '</td><td>' + t.faculty_name + '</td>' +
+          '<td>' + t.start_time + '–' + t.end_time + '</td><td>' + (t.room || '–') + '</td>' +
+          '<td>' + t.semester + '</td><td>' + (t.section || '–') + '</td>' +
+          '<td><button class="btn btn-sm btn-danger" onclick="deleteSlot(' + t.slot_id + ')">Delete</button></td></tr>';
+      }).join('');
+    });
+  }
+
+  window.deleteSlot = function (id) {
+    if (!confirm('Delete this timetable slot?')) return;
+    del('TimetableServlet', { id: id }).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') loadTimetable();
+    });
+  };
+
+  document.getElementById('btnAddSlot').addEventListener('click', function () {
+    Promise.all([ensureDepts(), api('CourseServlet'), api('FacultyServlet')]).then(function (res) {
+      courses = res[1]; faculty = res[2];
+      fillCourses(['tt_course_id']); fillFaculty(['tt_faculty_id']); fillDepts(['tt_dept_id']);
+      clearForm(['tt_section','tt_start_time','tt_end_time','tt_room']);
+      openModal('modalSlot');
+    });
+  });
+
+  document.getElementById('btnSaveSlot').addEventListener('click', function () {
+    var params = {
+      course_id:   val('tt_course_id'),
+      faculty_id:  val('tt_faculty_id'),
+      dept_id:     val('tt_dept_id'),
+      semester:    val('tt_semester'),
+      day_of_week: val('tt_day_of_week'),
+      section:     val('tt_section'),
+      start_time:  val('tt_start_time'),
+      end_time:    val('tt_end_time'),
+      room:        val('tt_room')
+    };
+    if (!params.course_id || !params.faculty_id || !params.dept_id || !params.semester || !params.day_of_week || !params.start_time || !params.end_time) {
+      toast('Please fill all required fields', 'error'); return;
+    }
+    post('TimetableServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalSlot'); loadTimetable(); }
+    });
+  });
+
+  // ── ATTENDANCE ────────────────────────────────────────
+  function loadAttendance() {
+    api('AttendanceServlet').then(function (data) {
+      var tb = document.getElementById('tblAttendance');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No records</td></tr>'; return; }
+      tb.innerHTML = data.map(function (a) {
+        return '<tr><td>' + a.att_id + '</td><td>' + a.student_name + '</td><td>' + a.roll_number + '</td>' +
+          '<td>' + a.course_name + '</td><td>' + a.date + '</td><td>' + statusBadge(a.status) + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnMarkAtt').addEventListener('click', function () {
+    Promise.all([api('StudentServlet'), api('CourseServlet')]).then(function (res) {
+      students = res[0]; courses = res[1];
+      fillStudents(['att_student_id']); fillCourses(['att_course_id']);
+      setVal('att_date', new Date().toISOString().slice(0,10));
+      openModal('modalAttendance');
+    });
+  });
+
+  document.getElementById('btnSaveAttendance').addEventListener('click', function () {
+    var params = {
+      student_id: val('att_student_id'),
+      course_id:  val('att_course_id'),
+      date:       val('att_date'),
+      status:     val('att_status')
+    };
+    if (!params.student_id || !params.course_id || !params.date) {
+      toast('Student, course and date are required', 'error'); return;
+    }
+    post('AttendanceServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalAttendance'); loadAttendance(); }
+    });
+  });
+
+  // ── RESULTS ───────────────────────────────────────────
+  function loadResults() {
+    api('ResultServlet').then(function (data) {
+      var tb = document.getElementById('tblResults');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="empty">No results found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (r) {
+        return '<tr><td>' + r.student_name + '</td><td>' + r.roll_number + '</td><td>' + r.course_name + '</td>' +
+          '<td>' + r.semester + '</td><td>' + r.internal + '</td><td>' + r.external + '</td>' +
+          '<td><strong>' + r.total + '</strong></td><td>' + badge(r.grade, r.grade === 'F' ? 'red' : 'green') + '</td><td>' + r.grade_point + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnAddResult').addEventListener('click', function () {
+    Promise.all([api('StudentServlet'), api('CourseServlet')]).then(function (res) {
+      students = res[0]; courses = res[1];
+      fillStudents(['r_student_id']); fillCourses(['r_course_id']);
+      clearForm(['r_internal','r_external']);
+      openModal('modalResult');
+    });
+  });
+
+  document.getElementById('btnSaveResult').addEventListener('click', function () {
+    var params = {
+      student_id: val('r_student_id'),
+      course_id:  val('r_course_id'),
+      semester:   val('r_semester'),
+      internal:   val('r_internal'),
+      external:   val('r_external')
+    };
+    if (!params.student_id || !params.course_id || !params.semester || params.internal === '' || params.external === '') {
+      toast('All fields are required', 'error'); return;
+    }
+    post('ResultServlet', params).then(function (d) {
+      if (d.status === 'success') {
+        toast('Marks saved — Grade: ' + d.grade + '  GP: ' + d.grade_point + '  Total: ' + d.total, 'success');
+        closeModal('modalResult'); loadResults();
+      } else {
+        toast(d.error || d.message, 'error');
+      }
+    });
+  });
+
+  // ── ASSIGNMENTS ───────────────────────────────────────
+  function loadAssignments() {
+    api('AssignmentServlet').then(function (data) {
+      var tb = document.getElementById('tblAssignments');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No assignments</td></tr>'; return; }
+      tb.innerHTML = data.map(function (a) {
+        return '<tr><td>' + a.assign_id + '</td><td>' + a.title + '</td><td>' + a.course_name + '</td>' +
+          '<td>' + a.faculty_name + '</td><td>' + (a.due_date || '–') + '</td><td>' + a.max_marks + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnAddAssignment').addEventListener('click', function () {
+    Promise.all([api('CourseServlet'), api('FacultyServlet')]).then(function (res) {
+      courses = res[0]; faculty = res[1];
+      fillCourses(['a_course_id']); fillFaculty(['a_faculty_id']);
+      clearForm(['a_title','a_due_date','a_max_marks','a_description']);
+      openModal('modalAssignment');
+    });
+  });
+
+  document.getElementById('btnSaveAssignment').addEventListener('click', function () {
+    var params = {
+      title:       val('a_title'),
+      course_id:   val('a_course_id'),
+      faculty_id:  val('a_faculty_id'),
+      due_date:    val('a_due_date'),
+      max_marks:   val('a_max_marks'),
+      description: val('a_description')
+    };
+    if (!params.title || !params.course_id || !params.faculty_id || !params.due_date || !params.max_marks) {
+      toast('Title, course, faculty, due date, max marks are required', 'error'); return;
+    }
+    post('AssignmentServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalAssignment'); loadAssignments(); }
+    });
+  });
+
+  // ── FEES ──────────────────────────────────────────────
+  function loadFees() {
+    api('FeeServlet').then(function (data) {
+      var tb = document.getElementById('tblFees');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="empty">No fee records</td></tr>'; return; }
+      tb.innerHTML = data.map(function (f) {
+        return '<tr><td>' + f.fee_id + '</td><td>' + f.student_name + '</td><td>' + f.roll_number + '</td>' +
+          '<td>' + f.semester + '</td><td>' + f.fee_type + '</td><td>' + Number(f.amount).toLocaleString() + ' CFA</td>' +
+          '<td>' + (f.due_date || '–') + '</td><td>' + statusBadge(f.status) + '</td>' +
+          '<td>' + (f.status !== 'Paid' ? '<button class="btn btn-sm btn-primary" onclick="payFee(' + f.fee_id + ')">Mark Paid</button>' : '') + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  window.payFee = function (id) {
+    post('FeeServlet', { action: 'pay', fee_id: id }).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') loadFees();
+    });
+  };
+
+  document.getElementById('btnAddFee').addEventListener('click', function () {
+    api('StudentServlet').then(function (data) {
+      students = data;
+      fillStudents(['fee_student_id']);
+      clearForm(['fee_amount','fee_due_date']);
+      openModal('modalFee');
+    });
+  });
+
+  document.getElementById('btnSaveFee').addEventListener('click', function () {
+    var params = {
+      student_id: val('fee_student_id'),
+      semester:   val('fee_semester'),
+      fee_type:   val('fee_fee_type'),
+      amount:     val('fee_amount'),
+      due_date:   val('fee_due_date')
+    };
+    if (!params.student_id || !params.semester || !params.fee_type || !params.amount || !params.due_date) {
+      toast('All fields are required', 'error'); return;
+    }
+    post('FeeServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalFee'); loadFees(); }
+    });
+  });
+
+  // ── HOSTEL ────────────────────────────────────────────
+  function loadHostel() {
+    api('HostelServlet').then(function (data) {
+      rooms = data;
+      var tb = document.getElementById('tblHostel');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No rooms found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (r) {
+        var full = r.occupied >= r.capacity;
+        return '<tr><td>' + r.room_number + '</td><td>' + (r.block || '–') + '</td>' +
+          '<td>' + r.room_type + '</td><td>' + r.floor + '</td>' +
+          '<td>' + r.capacity + '</td><td>' + badge(r.occupied + '/' + r.capacity, full ? 'red' : 'green') + '</td>' +
+          '<td>' + Number(r.monthly_fee).toLocaleString() + ' CFA</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnAddRoom').addEventListener('click', function () {
+    clearForm(['hr_room_number','hr_block','hr_floor','hr_capacity','hr_monthly_fee']);
+    openModal('modalRoom');
+  });
+
+  document.getElementById('btnSaveRoom').addEventListener('click', function () {
+    var params = {
+      room_number:  val('hr_room_number'),
+      block:        val('hr_block'),
+      room_type:    val('hr_room_type'),
+      floor:        val('hr_floor'),
+      capacity:     val('hr_capacity'),
+      monthly_fee:  val('hr_monthly_fee')
+    };
+    if (!params.room_number || !params.floor || !params.capacity || !params.monthly_fee) {
+      toast('Room number, floor, capacity, monthly fee are required', 'error'); return;
+    }
+    post('HostelServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalRoom'); loadHostel(); }
+    });
+  });
+
+  document.getElementById('btnAllotRoom').addEventListener('click', function () {
+    Promise.all([api('StudentServlet'), api('HostelServlet')]).then(function (res) {
+      students = res[0]; rooms = res[1];
+      fillStudents(['allot_student_id']);
+      fillSelect('allot_room_id', rooms.filter(function (r) { return r.occupied < r.capacity; }),
+        'room_id', function (r) { return r.room_number + ' – ' + r.block + ' (' + r.occupied + '/' + r.capacity + ')'; }, 'Select Room');
+      openModal('modalAllot');
+    });
+  });
+
+  document.getElementById('btnSaveAllot').addEventListener('click', function () {
+    var params = { action: 'allot', student_id: val('allot_student_id'), room_id: val('allot_room_id') };
+    if (!params.student_id || !params.room_id) {
+      toast('Student and room are required', 'error'); return;
+    }
+    post('HostelServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalAllot'); loadHostel(); }
+    });
+  });
+
+  // ── LIBRARY ───────────────────────────────────────────
+  function loadLibrary() {
+    api('LibraryServlet').then(function (data) {
+      books = data;
+      var tb = document.getElementById('tblLibrary');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No books found</td></tr>'; return; }
+      tb.innerHTML = data.map(function (b) {
+        return '<tr><td>' + b.book_id + '</td><td>' + b.title + '</td><td>' + (b.author || '–') + '</td>' +
+          '<td>' + (b.isbn || '–') + '</td><td>' + (b.category || '–') + '</td>' +
+          '<td>' + b.total_copies + '</td><td>' + badge(b.available, b.available > 0 ? 'green' : 'red') + '</td>' +
+          '<td>' + (b.rack_no || '–') + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  document.getElementById('btnAddBook').addEventListener('click', function () {
+    clearForm(['b_title','b_author','b_isbn','b_category','b_total_copies','b_rack_no']);
+    openModal('modalBook');
+  });
+
+  document.getElementById('btnSaveBook').addEventListener('click', function () {
+    var params = {
+      title:        val('b_title'),
+      author:       val('b_author'),
+      isbn:         val('b_isbn'),
+      category:     val('b_category'),
+      total_copies: val('b_total_copies'),
+      rack_no:      val('b_rack_no')
+    };
+    if (!params.title || !params.total_copies) {
+      toast('Title and total copies are required', 'error'); return;
+    }
+    post('LibraryServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalBook'); loadLibrary(); }
+    });
+  });
+
+  document.getElementById('btnIssueBook').addEventListener('click', function () {
+    Promise.all([api('LibraryServlet'), api('StudentServlet')]).then(function (res) {
+      books = res[0]; var allUsers = res[1];
+      fillSelect('issue_book_id', books.filter(function (b) { return b.available > 0; }),
+        'book_id', function (b) { return b.title + ' (avail: ' + b.available + ')'; }, 'Select Book');
+      fillSelect('issue_user_id', allUsers, 'student_id',
+        function (s) { return s.name + ' – ' + s.roll_number; }, 'Select Student');
+      openModal('modalIssue');
+    });
+  });
+
+  document.getElementById('btnSaveIssue').addEventListener('click', function () {
+    var bookId = val('issue_book_id');
+    var userId = val('issue_user_id'); // this is student_id; we need user_id
+    // find the student to get their user_id
+    var stu = students.find(function (s) { return s.student_id == userId; });
+    var realUserId = stu ? stu.user_id : userId;
+    // fallback: StudentServlet returns student_id not user_id in list
+    // So we pass student_id as user_id – need to fetch once to resolve
+    api('StudentServlet?id=' + userId).then(function (data) {
+      if (!data || !data[0]) { toast('Student not found', 'error'); return; }
+      var uid = data[0].user_id || userId;
+      post('LibraryServlet', { action: 'issue', book_id: bookId, user_id: uid }).then(function (d) {
+        toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+        if (d.status === 'success') { closeModal('modalIssue'); loadLibrary(); }
+      });
+    });
+  });
+
+  // ── NOTICES ───────────────────────────────────────────
+  function loadNotices() {
+    api('NoticeServlet').then(function (data) {
+      var tb = document.getElementById('tblNotices');
+      if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No notices</td></tr>'; return; }
+      tb.innerHTML = data.map(function (n) {
+        return '<tr>' +
+          '<td>' + n.notice_id + '</td>' +
+          '<td><strong>' + n.title + '</strong></td>' +
+          '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (n.content || '') + '</td>' +
+          '<td>' + badge(n.target_role, 'blue') + '</td>' +
+          '<td>' + n.posted_by + '</td>' +
+          '<td>' + (n.is_urgent ? badge('Urgent','red') : badge('Normal','gold')) + '</td>' +
+          '<td>' + (n.created_at || '').slice(0,10) + '</td>' +
+          '<td><button class="btn btn-sm btn-danger" onclick="deleteNotice(' + n.notice_id + ')">Delete</button></td>' +
+          '</tr>';
+      }).join('');
+    });
+  }
+
+  window.deleteNotice = function (id) {
+    if (!confirm('Delete this notice?')) return;
+    del('NoticeServlet', { id: id }).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') loadNotices();
+    });
+  };
+
+  document.getElementById('btnAddNotice').addEventListener('click', function () {
+    clearForm(['n_title','n_content']);
+    openModal('modalNotice');
+  });
+
+  document.getElementById('btnSaveNotice').addEventListener('click', function () {
+    var params = {
+      title:       val('n_title'),
+      content:     val('n_content'),
+      target_role: val('n_target_role'),
+      posted_by:   currentUserId,
+      is_urgent:   val('n_is_urgent')
+    };
+    if (!params.title) { toast('Title is required', 'error'); return; }
+    post('NoticeServlet', params).then(function (d) {
+      toast(d.message || d.error, d.status === 'success' ? 'success' : 'error');
+      if (d.status === 'success') { closeModal('modalNotice'); loadNotices(); }
+    });
+  });
+
+  // ── INIT ──────────────────────────────────────────────
+  loadDashboard();
+
+}); // DOMContentLoaded
+</script>
+</body>
+</html>
